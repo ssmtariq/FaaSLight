@@ -5,12 +5,16 @@ import json
 import sys
 sys.setrecursionlimit(5000000)
 import shutil
-
+import argparse
 import time
 
 time_start = time.time()
 
-input_package  = "XXXApp_name"
+# Parse input arguments
+parser = argparse.ArgumentParser(description="Run FaaSLight integration functions.")
+parser.add_argument('input_package', type=str, help="Name of the input package directory")
+args = parser.parse_args()
+input_package = args.input_package
 
 dir_name = input_package.split('/')[-1]
 output_file = "{}/output.json".format(input_package)
@@ -237,43 +241,44 @@ def func_rewrite():
 if __name__ == "__main__": 
     
     # Step1: Preprocessing
-    print("step1 start")
+    print("Step1: Preprocessing START")
     prepare()
-    print("step1 end")
+    print("Step1 END")
 
     # Step2: Serverless function
-    print("step2 start")
+    print("Step2: Serverless function START")
     ymlFile,seedfun_list,entry_py,input_entry_point = serverless_func()
-    print("step2 end")
+    print("Step2 END")
 
     # Step3: Magic function
-    print("step3 start")
+    print("Step3: Magic function START")
     Identify_name,moshu_file = magic_func()
-    print("step3 end")
+    print("Step3 END")
 
     time_tmp = time.time()
 
     # Step4: Constructing call graph 
-    print("step4 start")
+    print("Step4: Constructing call graph START")
     re_FunRel = construct_graph()
-    print("step4 end")
-
+    print(f"Construct callgraph output: ",re_FunRel)
+    print("Step4 END")
     time_end = time.time()
-    print("Spending of step4:"+str(time_end-time_tmp))
+    print(f"Total time spent in step4:",str(time_end-time_tmp)," seconds")
 
     # Step5: Initial useful function generation
-    print("step5 start")
+    print("Step5: Initial useful function generation START")
     used_fun_result_output = initial_func()
-    print("step5 end")
+    print(f"Initial useful function generation output: ",used_fun_result_output)
+    print("Step5 END")
 
     # Step6: Special rule query
-    print("step6 start")
+    print("Step6: Special rule query START")
     used_package_name,moshu_file_final,used_fun_result_output_final = special_rule()
-    print("step6 end")
+    print("Step6 END")
 
 
     # Step7: Function-level rewriting
-    print("step8 start")
+    print("Step7: Function-level rewriting START")
     used_fun_result_output_final_re,buits_list_file = func_rewrite()
-    print("step7 end")
+    print("Step7 END")
 
