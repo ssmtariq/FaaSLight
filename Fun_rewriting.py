@@ -429,6 +429,15 @@ def read_built(inputfile):
     file.close()
     return built_list
 
+def read_file_with_fallback(filepath):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        # Fallback to 'latin1' if 'utf-8' fails
+        with open(filepath, 'r', encoding='latin1') as f:
+            return f.read()
+
 if __name__ == "__main__": 
 
     parser = argparse.ArgumentParser()
@@ -471,8 +480,13 @@ if __name__ == "__main__":
         for name in files:
             if name.endswith('.py'):
                 handle_file = "" + os.path.join(root, name)
-                with open(handle_file,'r',encoding = 'utf-8') as f:
-                    content = f.read()
+                try:
+                    with open(handle_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                except UnicodeDecodeError:
+                    # Fallback to 'latin1' if 'utf-8' fails
+                    with open(handle_file, 'r', encoding='latin1') as f:
+                        content = f.read()
                 f.close()
                 tree = parse(content)
                 w = open(handle_file, 'w',encoding = 'utf-8')

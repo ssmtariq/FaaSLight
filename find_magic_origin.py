@@ -64,6 +64,15 @@ def function_transform(node: astroid.FunctionDef):
         
     return node
 
+def read_file_with_fallback(filepath):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        # Fallback to 'latin1' if 'utf-8' fails
+        with open(filepath, 'r', encoding='latin1') as f:
+            return f.read()
+
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser()
     parser.add_argument( "--dirname", default="" )
@@ -82,8 +91,7 @@ if __name__ == "__main__":
         for name in files:
             if name.endswith('.py'):
                 handle_file = ""+os.path.join(root, name)
-                with open(handle_file,'r',encoding='utf-8') as f:
-                    content = f.read()   
+                content = read_file_with_fallback(handle_file)
                 tree = parse(content)
 
     moshu_output = open(moshu_file, 'w', encoding='utf-8')

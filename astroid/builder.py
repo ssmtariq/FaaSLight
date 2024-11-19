@@ -146,6 +146,10 @@ class AstroidBuilder(raw_building.InspectBuilder):
     def string_build(self, data, modname="", path=None):
         """Build astroid from source code string."""
         module = self._data_build(data, modname, path)
+        if module is None:
+            # Parsing failed, return None or handle as needed
+            print(f"Warning: Parsing failed for module {modname} at path {path}. Skipping.")
+            return None
         module.file_bytes = data.encode("utf-8")
         return self._post_build(module, "utf-8")
 
@@ -175,14 +179,8 @@ class AstroidBuilder(raw_building.InspectBuilder):
             # print('-------------')
             node, parser_module = _parse_string(data, type_comments=True)
         except (TypeError, ValueError, SyntaxError) as exc:
-            raise exceptions.AstroidSyntaxError(
-                "Parsing Python code failed:\n{error}",
-                source=data,
-                modname=modname,
-                path=path,
-                error=exc,
-            ) from exc
-
+            print(f"Warning: Parsing failed for module {modname} at path {path}. Error: {exc}")
+            return None
         if path is not None:
             node_file = os.path.abspath(path)
         else:

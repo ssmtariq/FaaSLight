@@ -42,13 +42,23 @@ def file_exsit(rel_dir, one_package_str, i):
                 return flag, temp_file, i
     
 
+def read_file_with_fallback(filepath):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        # Fallback to 'latin1' if 'utf-8' fails
+        with open(filepath, 'r', encoding='latin1') as f:
+            return f.read()
+
 def get_ast(input_file):
-
-    with open(input_file,'r',encoding='utf-8') as f:
-        content = f.read()
-    tree_node = ast.parse(content)
-    return tree_node
-
+    content = read_file_with_fallback(input_file)
+    try:
+        tree_node = ast.parse(content)
+        return tree_node
+    except SyntaxError as e:
+        print(f"Warning: Syntax error in file {input_file}: {e}")
+        return None
 
 
 
@@ -1051,19 +1061,24 @@ def handler_file_handle(handler_i, load_dict, dir_name, py_all, moshu_file):
     
 
 def get_all_value(path):
-
     dir_name = "{}/".format(path)
-    py_all={}
-    handle_file= ""
+    py_all = {}
+    handle_file = ""
+
     for root, dirs, files in os.walk(path):
         for name in files:
             if name.endswith('.py'):
-                handle_file = ""+os.path.join(root, name)
+                handle_file = os.path.join(root, name)
                 tree_node = get_ast(handle_file)
-                all_tmp = get_assign(tree_node)
-                py_name = handle_file.replace(dir_name,'').split(".")[0].replace('/','.')
-                py_all[py_name] = all_tmp
+                
+                # Check if tree_node is None and skip the file if so
+                if tree_node is None:
+                    print(f"Skipping {handle_file} due to parsing failure.")
+                    continue
 
+                all_tmp = get_assign(tree_node)
+                py_name = handle_file.replace(dir_name, '').split(".")[0].replace('/', '.')
+                py_all[py_name] = all_tmp
 
     return py_all
                 
